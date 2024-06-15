@@ -12,6 +12,7 @@ import { createIdempotencyKey } from "../../src/services/idempotency/create";
 
 export async function crawlController(req: Request, res: Response) {
   try {
+    console.log("entered crawler");
     const { success, team_id, error, status } = await authenticateUser(
       req,
       res,
@@ -20,6 +21,7 @@ export async function crawlController(req: Request, res: Response) {
     if (!success) {
       return res.status(status).json({ error });
     }
+    console.log("authentication passed");
 
     if (req.headers["x-idempotency-key"]) {
       const isIdempotencyValid = await validateIdempotencyKey(req);
@@ -33,37 +35,40 @@ export async function crawlController(req: Request, res: Response) {
         return res.status(500).json({ error: error.message });
       }
     }
+    console.log("idempotency passed");
 
     const { success: creditsCheckSuccess, message: creditsCheckMessage } =
       await checkTeamCredits(team_id, 1);
     if (!creditsCheckSuccess) {
       return res.status(402).json({ error: "Insufficient credits" });
     }
+    console.log("credits check passed");
 
     const url = req.body.url;
     if (!url) {
       return res.status(400).json({ error: "Url is required" });
     }
+    console.log("req body parsing passed");
 
     if (isUrlBlocked(url)) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "Firecrawl currently does not support social media scraping due to policy restrictions. We're actively working on building support for it.",
-        });
+      return res.status(403).json({
+        error:
+          "Firecrawl currently does not support social media scraping due to policy restrictions. We're actively working on building support for it.",
+      });
     }
+
+    console.log("blocked url passed");
 
     const mode = req.body.mode ?? "crawl";
 
     const crawlerOptions = req.body.crawlerOptions ?? {
-      allowBackwardCrawling: false
+      allowBackwardCrawling: false,
     };
     const pageOptions = req.body.pageOptions ?? {
       onlyMainContent: false,
       includeHtml: false,
       removeTags: [],
-      parsePDF: true
+      parsePDF: true,
     };
 
     if (mode === "single_urls" && !url.includes(",")) {
@@ -93,6 +98,7 @@ export async function crawlController(req: Request, res: Response) {
         return res.status(500).json({ error: error.message });
       }
     }
+    console.log("single urls passed");
 
     const job = await addWebScraperJob({
       url: url,
@@ -102,8 +108,11 @@ export async function crawlController(req: Request, res: Response) {
       pageOptions: pageOptions,
       origin: req.body.origin ?? "api",
     });
+    console.log("job created", job);
 
     await logCrawl(job.id.toString(), team_id);
+
+    console.log("crawl log passed", team_id);
 
     res.json({ jobId: job.id });
   } catch (error) {
