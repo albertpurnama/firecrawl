@@ -1,10 +1,10 @@
-# fly.toml app configuration file generated for firecrawl-scraper-js on 2024-04-07T21:09:59-03:00
+# fly.toml app configuration file generated for firecrawl-mission-ai on 2024-06-14T20:54:54-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'firecrawl-scraper-js'
-primary_region = 'mia'
+app = 'firecrawl-mission-ai'
+primary_region = 'sjc'
 kill_signal = 'SIGINT'
 kill_timeout = '5s'
 
@@ -15,36 +15,36 @@ kill_timeout = '5s'
   worker = 'npm run worker:production'
 
 [http_service]
-  internal_port = 8080
+  internal_port = 3002
   force_https = true
   auto_stop_machines = false
   auto_start_machines = true
   min_machines_running = 2
   processes = ['app']
 
-[http_service.concurrency]
-  type = "requests"
-  hard_limit = 100
-  soft_limit = 50
+  [http_service.concurrency]
+    type = 'requests'
+    hard_limit = 100
+    soft_limit = 50
 
-[[http_service.checks]]
-  grace_period = "20s"
-  interval = "30s"
-  method = "GET"
-  timeout = "15s"
-  path = "/"
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '15s'
+    grace_period = '20s'
+    method = 'GET'
+    path = '/'
 
 [[services]]
   protocol = 'tcp'
   internal_port = 8080
   processes = ['app']
 
-[[services.ports]]
+  [[services.ports]]
     port = 80
     handlers = ['http']
     force_https = true
 
-[[services.ports]]
+  [[services.ports]]
     port = 443
     handlers = ['tls', 'http']
 
@@ -55,9 +55,7 @@ kill_timeout = '5s'
 
 [[vm]]
   size = 'performance-4x'
+  memory = '4gb'
+  cpu_kind = 'shared'
+  cpus = 2
   processes = ['app']
-
-
-
-
-  

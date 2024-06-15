@@ -10,6 +10,9 @@ export function getWebScraperQueue() {
         lockDuration: 2 * 60 * 60 * 1000, // 2 hours in milliseconds,
         lockRenewTime: 30 * 60 * 1000, // 30 minutes in milliseconds
       },
+      redis: {
+        connectTimeout: 30000,
+      },
     });
     console.log("Web scraper queue created");
   }
